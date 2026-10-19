@@ -13,45 +13,69 @@ function usage() {
   return `SpecBridge — create a source-linked context brief for a Jira issue
 
 Usage:
-  specbridge init [--config PATH]
-  specbridge context ISSUE-123 [--config PATH] [--format md|json] [--output PATH]
+  specbridge init [--env PATH]
+  specbridge context [ISSUE-123] [--env PATH] [--format md|json] [--output PATH]
 
 Environment:
   SPECBRIDGE_JIRA_BASE_URL   Jira Cloud site URL
   SPECBRIDGE_JIRA_EMAIL      Jira account email
   SPECBRIDGE_JIRA_API_TOKEN  Jira API token
+  SPECBRIDGE_JIRA_ISSUE      Default Jira issue key
+  SPECBRIDGE_REPOSITORY_ROOT Path to the repository containing OpenSpec
+  SPECBRIDGE_SPEC_FILE       OpenSpec Markdown file, relative to repository root
+  SPECBRIDGE_SPEC_HEADING    Exact heading to include in the brief
 
 Run "specbridge context --help" for context command options.`;
 }
 
 function parseArgs(args) {
-  const options = { format: 'md', config: 'specbridge.config.json' };
+  const options = { format: 'md', env: '.env' };
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
     const arg = args[i];
     if (arg === '--help' || arg === '-h') options.help = true;
     else if (arg === '--config') options.config = args[++i];
+    else if (arg === '--env') options.env = args[++i];
     else if (arg === '--format') options.format = args[++i];
     else if (arg === '--output' || arg === '-o') options.output = args[++i];
     else if (arg.startsWith('-')) throw new Error(`Unknown option: ${arg}`);
     else positional.push(arg);
   }
-  if (!options.config || (options.output === undefined && args.includes('--output'))) {
+  if ((args.includes('--config') && !options.config) || (args.includes('--env') && !options.env) || (options.output === undefined && (args.includes('--output') || args.includes('-o')))) {
     throw new Error('An option is missing its value.');
   }
   return { options, positional };
 }
 
-async function init(configPath) {
+async function init(envPath) {
   try {
-    await readFile(configPath, 'utf8');
-    throw new Error(`${configPath} already exists; move it first if you want to replace it.`);
+    await readFile(envPath, 'utf8');
+    throw new Error(`${envPath} already exists; move it first if you want to replace it.`);
   } catch (error) {
     if (error.code !== 'ENOENT') throw error;
   }
-  const template = await readFile(path.join(here, '..', 'specbridge.example.json'), 'utf8');
-  await writeFile(configPath, template, { flag: 'wx' });
-  console.log(`Created ${configPath}. Add Jira issue links and set Jira credentials in your environment.`);
+  const template = await readFile(path.join(here, '..', '.env.example'), 'utf8');
+  await writeFile(envPath, template, { flag: 'wx' });
+  console.log(`Created ${envPath}. Fill in Jira credentials, issue key, and OpenSpec reference.`);
+}
+
+async function loadEnv(envPath) {
+  let contents;
+  try { contents = await readFile(envPath, 'utf8'); }
+  catch (error) { if (error.code === 'ENOENT') return; throw error; }
+  for (const [index, line] of contents.split(/\r?\n/).entries()) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const match = trimmed.match(/^(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/);
+    if (!match) throw new Error(`Invalid .env line ${index + 1}. Expected KEY=value.`);
+    let value = match[2].trim();
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1);
+    } else {
+      value = value.replace(/\s+#.*$/, '').trim();
+    }
+    if (process.env[match[1]] === undefined) process.env[match[1]] = value;
+  }
 }
 
 async function main() {
@@ -63,21 +87,34 @@ async function main() {
   const { options, positional } = parseArgs(args);
   if (options.help) {
     console.log(command === 'context'
-      ? `Usage: specbridge context ISSUE-123 [--config PATH] [--format md|json] [--output PATH]\n\nReads Jira issue fields and configured OpenSpec sections. It does not write to Jira.`
+      ? `Usage: specbridge context [ISSUE-123] [--env PATH] [--config PATH] [--format md|json] [--output PATH]\n\nReads Jira issue fields and the OpenSpec reference from .env. It does not write to Jira.`
       : usage());
     return;
   }
   if (command === 'init') {
-    await init(options.config);
+    await init(options.env);
     return;
   }
   if (command !== 'context') throw new Error(`Unknown command: ${command}\n\n${usage()}`);
-  const issueKey = positional[0];
-  if (!issueKey || positional.length > 1) throw new Error('Provide one Jira issue key, for example PROJ-123.');
+  await loadEnv(options.env);
+  const issueKey = positional[0] || process.env.SPECBRIDGE_JIRA_ISSUE;
+  if (!issueKey || positional.length > 1) throw new Error('Set SPECBRIDGE_JIRA_ISSUE in .env or provide one Jira issue key.');
   if (!['md', 'json'].includes(options.format)) throw new Error('--format must be md or json.');
 
-  const config = JSON.parse(await readFile(options.config, 'utf8'));
-  const result = await buildContext({ issueKey, config, configPath: options.config });
+  const configPath = options.config || options.env;
+  let config;
+  if (options.config) config = JSON.parse(await readFile(options.config, 'utf8'));
+  else {
+    const file = process.env.SPECBRIDGE_SPEC_FILE;
+    const heading = process.env.SPECBRIDGE_SPEC_HEADING;
+    if (Boolean(file) !== Boolean(heading)) throw new Error('Set both SPECBRIDGE_SPEC_FILE and SPECBRIDGE_SPEC_HEADING in .env.');
+    config = {
+      jira: { baseUrl: process.env.SPECBRIDGE_JIRA_BASE_URL },
+      repositoryRoot: process.env.SPECBRIDGE_REPOSITORY_ROOT || '.',
+      links: { [issueKey]: file ? [{ file, heading }] : [] }
+    };
+  }
+  const result = await buildContext({ issueKey, config, configPath });
   const rendered = options.format === 'json' ? `${JSON.stringify(result, null, 2)}\n` : renderMarkdown(result);
   if (options.output) await writeFile(options.output, rendered, 'utf8');
   else process.stdout.write(rendered);

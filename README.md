@@ -20,7 +20,7 @@ SpecBridge is designed to run inside your own environment. You control how it co
 
 ## Try it
 
-The first runnable flow can read a Jira issue, connect it to selected OpenSpec requirements, and produce a context brief. See the [quickstart](docs/quickstart.md) to run it locally.
+The first runnable flow reads a Jira issue, connects it to an OpenSpec requirement, and produces a context brief. Set it up in `.env` by following the [quickstart](docs/quickstart.md).
 
 ## Project status
 
