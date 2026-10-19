@@ -2,7 +2,7 @@
 
 **Review pull requests with clear evidence for both developers and product managers.**
 
-SpecBridge reviews a PR in an isolated, read-only checkout. Jira and OpenSpec add product intent and acceptance criteria when available; they are context for the review, not a prerequisite to start one.
+SpecBridge is being built for evidence-backed PR reviews. The target deep-review flow uses ChunkHound and a reranker model in local Docker containers, with Codex CLI or Claude Code CLI selected by the user. Jira and OpenSpec add product intent when available.
 
 ## Why use it?
 
@@ -12,25 +12,29 @@ SpecBridge reviews a PR in an isolated, read-only checkout. Jira and OpenSpec ad
 
 ## How it works
 
-1. Give SpecBridge a GitHub PR URL.
-2. Review the change for product conformance, implementation risks, and maintainability.
-3. Inspect findings tied to the exact PR revision; decide what to do as a team.
+1. Start the local retrieval services and choose a reviewer CLI.
+2. Give SpecBridge a GitHub PR URL.
+3. Inspect staged, evidence-backed findings tied to the exact PR revision; decide what to do as a team.
 
 SpecBridge is designed to run inside your own environment. You control how it connects to Jira, your code, and the AI service you choose.
 
+For the planned deep-review stack, code embeddings can run locally or use OpenRouter `baai/bge-m3`; ChunkHound and the reranker stay local in Docker. The OpenRouter option sends indexed source text to OpenRouter and its serving provider.
+
+The proposed local default is Qwen3-Embedding-0.6B served by Ollama in Docker. Users can choose local BGE-M3 or provide another OpenAI-compatible embedding endpoint. Embeddings are separate from the local reranker. See the [embedding options](docs/embedding-options.md).
+
 ## Try it
 
-Start a read-only Codex review with the [quickstart](docs/quickstart.md). No Jira setup is needed for a basic PR review.
+The current prototype supports an experimental, single-pass Codex CLI review. Follow the [prototype quickstart](docs/quickstart.md). It does not yet include the required ChunkHound/reranker stack, Claude selection, staged analysis, or review UI, so it is not the complete deep-review workflow described above. The [AI setup prompt](docs/AI-SETUP-PROMPT.md) is the onboarding prompt planned for the completed local stack.
 
 ## Project status
 
-SpecBridge is an early open-source project. The first PR-first Codex CLI flow is available experimentally. Jira/OpenSpec context, ChunkHound search, Claude support, and self-hosted service deployment are being added in stages.
+SpecBridge is an early open-source project. PR intake, a one-pass Codex CLI prototype, and Jira/OpenSpec context generation are available experimentally. Local Docker code retrieval, local reranking, selectable Codex/Claude adapters, resumable deep review, and the review UI remain in development.
 
 ## Get involved
 
 We welcome feedback from developers, product managers, and maintainers. Start with the [product overview](docs/product-brief.md), see the [roadmap](docs/roadmap.md), or help shape the work in GitHub Issues.
 
-The [review method](docs/review-method.md) describes how findings stay grounded and review output remains under human control. Technical details are in the [implementation plan](docs/implementation-plan.md).
+The [review method](docs/review-method.md) describes how findings stay grounded and review output remains under human control. See the [setup experience](docs/setup-experience.md) for the one-command onboarding design and the [AI setup prompt](docs/AI-SETUP-PROMPT.md). Technical details are in the [implementation plan](docs/implementation-plan.md).
 
 ## License
 

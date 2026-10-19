@@ -8,3 +8,5 @@ coverage/
 .cache/
 specbridge.config.json
 context-brief.*
+/review-*.md
+/reviews/

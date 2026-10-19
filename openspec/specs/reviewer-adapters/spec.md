@@ -35,3 +35,9 @@ The system SHALL allow the operator to select a supported reviewer for a run and
 - **WHEN** an operator selects Codex CLI or Claude Code CLI
 - **THEN** the matching adapter executes with the configured model and permission policy
 - **AND** the common report structure remains unchanged
+
+#### Scenario: User changes reviewer provider
+
+- **WHEN** the operator selects Codex CLI or Claude Code CLI in configuration or for a run
+- **THEN** SpecBridge runs only the selected reviewer and records its provider, model, and version
+- **AND** the user does not need to edit application source code to switch providers

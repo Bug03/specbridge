@@ -12,7 +12,7 @@ Help teams review pull requests against both the code and the intent behind the 
 
 ## Core workflow
 
-`GitHub PR → isolated subject snapshot → Codex/Claude review → evidence-backed findings → optional Jira/OpenSpec context → human triage`
+`GitHub PR → pinned checkout → ChunkHound retrieval + local Docker reranking → chosen Codex/Claude reviewer → validated findings → optional Jira/OpenSpec intent → human triage`
 
 The first useful output is an evidence-backed PR review, not an autonomous approval. Developers need implementation findings with a concrete failure path; PMs need to see whether changed behavior matches the ticket and accepted requirements. Missing or conflicting intent is surfaced as a question instead of guessed. Codex CLI and Claude Code CLI are reviewer options behind the same provider-neutral contract; neither gets permission to change code or publish a review in the initial flow.
 
@@ -27,7 +27,7 @@ The first useful output is an evidence-backed PR review, not an autonomous appro
 
 Self-hosting is a first-class deployment goal. A team should be able to run the service in its own network and manage its own database, credentials, backups, and retention. The core workflow must not depend on a SpecBridge-operated cloud control plane.
 
-Self-hosting does not automatically mean zero data egress: the service must reach Jira, configured Git hosting, and any configured model endpoint. Document these connections. Do not send source context to a model provider unless the team has explicitly configured that provider; support private or local model endpoints where practical.
+ChunkHound and the reranker are required local Docker services for a complete deep review. The operator chooses either Codex CLI or Claude Code CLI for the reasoning reviewer. Embeddings may use a local model, the team's OpenAI-compatible endpoint, or OpenRouter `baai/bge-m3`; when hosted embeddings are selected, disclose that indexed source text is sent to that provider. The proposed local default is Qwen3-Embedding-0.6B via Ollama, pending code-review fixture evaluation. The reranker remains local in every mode. Self-hosting does not automatically mean zero data egress: the service may reach GitHub, Jira, the chosen reviewer, and an embedding endpoint. Do not send source context to a model provider unless the team explicitly configures it.
 
 ## Success signals
 
@@ -44,3 +44,10 @@ Self-hosting does not automatically mean zero data egress: the service must reac
 - Automatically approving or merging pull requests.
 - Copying entire specs into every ticket.
 - Claiming complete coverage when source information or tests are missing.
+
+## Review quality requirements
+
+- A complete deep review requires a healthy local ChunkHound index and a healthy local Docker reranker. If either is unavailable, block the deep review or clearly label the run incomplete; never silently fall back to a single-pass review.
+- Let each operator choose Codex CLI or Claude Code CLI. Both use the same finding schema, read-only policy, and evidence validation.
+- Stage work into discovery, focused analysis, independent finding validation, and synthesis. Persist stage results so limits and interruptions do not discard completed work.
+- Show elapsed setup/indexing time separately from agent analysis and finding validation.
