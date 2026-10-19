@@ -26,6 +26,10 @@ The proposed local default is Qwen3-Embedding-0.6B served by Ollama in Docker. U
 
 The current prototype supports an experimental, single-pass Codex CLI review. Follow the [prototype quickstart](docs/quickstart.md). It does not yet include the required ChunkHound/reranker stack, Claude selection, staged analysis, or review UI, so it is not the complete deep-review workflow described above. The [AI setup prompt](docs/AI-SETUP-PROMPT.md) is the onboarding prompt planned for the completed local stack.
 
+## Sample review
+
+You can review SpecBridge sample outputs in [English](docs/examples/sample-review.md) and [Vietnamese](docs/examples/sample-review-vi.md). Both reports use a fictional repository and findings; no real project review is included.
+
 ## Project status
 
 SpecBridge is an early open-source project. PR intake, a one-pass Codex CLI prototype, and Jira/OpenSpec context generation are available experimentally. Local Docker code retrieval, local reranking, selectable Codex/Claude adapters, resumable deep review, and the review UI remain in development.
