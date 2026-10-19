@@ -91,8 +91,45 @@ function credentials(config) {
   return { baseUrl: url.toString().replace(/\/$/, ''), email, token };
 }
 
+function jiraHeaders(auth) {
+  return {
+    authorization: `Basic ${Buffer.from(`${auth.email}:${auth.token}`).toString('base64')}`,
+    accept: 'application/json'
+  };
+}
+
+async function verifyJiraAuthentication(auth) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15000);
+  let response;
+  try {
+    response = await fetch(`${auth.baseUrl}/rest/api/3/myself`, {
+      method: 'GET',
+      headers: jiraHeaders(auth),
+      signal: controller.signal
+    });
+  } catch (error) {
+    if (error.name === 'AbortError') throw new Error('Jira authentication check timed out after 15 seconds.');
+    throw new Error(`Could not reach Jira: ${error.message}`);
+  } finally {
+    clearTimeout(timer);
+  }
+  if (response.status === 401) {
+    const reason = response.headers.get('x-seraph-loginreason');
+    if (reason === 'AUTHENTICATION_DENIED') {
+      throw new Error('Jira rejected the login attempt. Check whether the account is temporarily blocked, then try again.');
+    }
+    throw new Error('Jira rejected the configured email/API token (HTTP 401). Check that SPECBRIDGE_JIRA_EMAIL is the Atlassian account email and replace SPECBRIDGE_JIRA_API_TOKEN with a valid API token.');
+  }
+  if (response.status === 403) {
+    throw new Error('Jira authenticated the account but denied access to the current-user endpoint (HTTP 403). Check the token type and account access.');
+  }
+  if (!response.ok) throw new Error(`Jira authentication check failed with HTTP ${response.status}.`);
+}
+
 async function fetchIssue(issueKey, config) {
   const auth = credentials(config);
+  await verifyJiraAuthentication(auth);
   const url = `${auth.baseUrl}/rest/api/3/issue/${encodeURIComponent(issueKey)}?fields=summary,description,status,issuetype,labels,project`;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 15000);
@@ -100,10 +137,7 @@ async function fetchIssue(issueKey, config) {
   try {
     response = await fetch(url, {
       method: 'GET',
-      headers: {
-        authorization: `Basic ${Buffer.from(`${auth.email}:${auth.token}`).toString('base64')}`,
-        accept: 'application/json'
-      },
+      headers: jiraHeaders(auth),
       signal: controller.signal
     });
   } catch (error) {
@@ -112,12 +146,9 @@ async function fetchIssue(issueKey, config) {
   } finally {
     clearTimeout(timer);
   }
-  if (!response.ok) {
-    const details = response.status === 401 || response.status === 403
-      ? 'Check the Jira email, API token, and read access.'
-      : response.status === 404 ? 'Check the issue key and project access.' : `Jira returned HTTP ${response.status}.`;
-    throw new Error(`Could not read ${issueKey}. ${details}`);
-  }
+  if (response.status === 404) throw new Error(`Could not read ${issueKey} (HTTP 404). Check that the issue key exists and the authenticated account has Browse Projects permission.`);
+  if (response.status === 403) throw new Error(`Could not read ${issueKey} (HTTP 403). The authenticated Jira account may not have Browse Projects permission.`);
+  if (!response.ok) throw new Error(`Could not read ${issueKey}. Jira returned HTTP ${response.status}.`);
   const json = await response.json();
   const fields = json.fields ?? {};
   return {

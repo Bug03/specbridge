@@ -50,7 +50,9 @@ Fill in Jira site URL, account email, and a read-only API token, then run:
 node /path/to/specbridge/src/cli.js context PROJ-123
 ```
 
-The `.env` file is ignored by Git. Never commit or share it.
+Use the Atlassian account email that created the API token and the site URL origin, such as `https://your-domain.atlassian.net` (do not paste a project or board URL). SpecBridge checks Jira authentication before looking up the issue. An HTTP 401 means Jira rejected the email/token pair; replace the token and confirm the account email. After authentication succeeds, an HTTP 404 means the issue key may be wrong or the account may not have Browse Projects access. See Atlassian's [API token and Basic authentication guide](https://developer.atlassian.com/cloud/jira/platform/basic-auth-for-rest-apis/).
+
+The `.env` file is ignored by Git. Never commit or share it. If a token has been exposed, revoke it in Atlassian and create a replacement.
 
 ## Planned full review setup
 
