@@ -4,7 +4,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { buildContext } from './context.js';
+import { createInterface } from 'node:readline/promises';
+import { stdin, stdout } from 'node:process';
+import { buildContext, findSpecReferences } from './context.js';
 
 const execFileAsync = promisify(execFile);
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -20,10 +22,7 @@ Environment:
   SPECBRIDGE_JIRA_BASE_URL   Jira Cloud site URL
   SPECBRIDGE_JIRA_EMAIL      Jira account email
   SPECBRIDGE_JIRA_API_TOKEN  Jira API token
-  SPECBRIDGE_JIRA_ISSUE      Default Jira issue key
-  SPECBRIDGE_REPOSITORY_ROOT Path to the repository containing OpenSpec
-  SPECBRIDGE_SPEC_FILE       OpenSpec Markdown file, relative to repository root
-  SPECBRIDGE_SPEC_HEADING    Exact heading to include in the brief
+  SPECBRIDGE_REPOSITORY_ROOT Optional path if you run from outside the project
 
 Run "specbridge context --help" for context command options.`;
 }
@@ -78,6 +77,30 @@ async function loadEnv(envPath) {
   }
 }
 
+async function chooseSpecReferences(candidates) {
+  if (!candidates.length) {
+    throw new Error('No OpenSpec requirements found under openspec/specs. Run this command from your project root or set SPECBRIDGE_REPOSITORY_ROOT in .env.');
+  }
+  if (candidates.length === 1) {
+    console.log(`Using the only OpenSpec requirement found: ${candidates[0].heading} (${candidates[0].file})`);
+    return candidates;
+  }
+  console.log('Choose the OpenSpec requirements this Jira issue should follow:');
+  candidates.forEach((item, index) => console.log(`  ${index + 1}. ${item.heading} — ${item.file}`));
+  if (!stdin.isTTY) throw new Error('Multiple requirements were found. Run interactively to choose, or use --config for a saved mapping.');
+  const terminal = createInterface({ input: stdin, output: stdout });
+  try {
+    const answer = (await terminal.question('Enter one or more numbers separated by commas: ')).trim();
+    const indexes = [...new Set(answer.split(',').map((value) => Number(value.trim())))];
+    if (!indexes.length || indexes.some((value) => !Number.isInteger(value) || value < 1 || value > candidates.length)) {
+      throw new Error('Choose valid requirement numbers, separated by commas.');
+    }
+    return indexes.map((index) => candidates[index - 1]);
+  } finally {
+    terminal.close();
+  }
+}
+
 async function main() {
   const [command, ...args] = process.argv.slice(2);
   if (!command || command === '--help' || command === '-h') {
@@ -97,22 +120,25 @@ async function main() {
   }
   if (command !== 'context') throw new Error(`Unknown command: ${command}\n\n${usage()}`);
   await loadEnv(options.env);
-  const issueKey = positional[0] || process.env.SPECBRIDGE_JIRA_ISSUE;
-  if (!issueKey || positional.length > 1) throw new Error('Set SPECBRIDGE_JIRA_ISSUE in .env or provide one Jira issue key.');
+  const issueKey = positional[0];
+  if (!issueKey || positional.length > 1) throw new Error('Provide one Jira issue key, for example PROJ-123.');
   if (!['md', 'json'].includes(options.format)) throw new Error('--format must be md or json.');
 
   const configPath = options.config || options.env;
   let config;
   if (options.config) config = JSON.parse(await readFile(options.config, 'utf8'));
   else {
-    const file = process.env.SPECBRIDGE_SPEC_FILE;
-    const heading = process.env.SPECBRIDGE_SPEC_HEADING;
-    if (Boolean(file) !== Boolean(heading)) throw new Error('Set both SPECBRIDGE_SPEC_FILE and SPECBRIDGE_SPEC_HEADING in .env.');
+    const repositoryRoot = path.resolve(process.env.SPECBRIDGE_REPOSITORY_ROOT || process.cwd());
+    const references = await chooseSpecReferences(await findSpecReferences(repositoryRoot));
     config = {
       jira: { baseUrl: process.env.SPECBRIDGE_JIRA_BASE_URL },
-      repositoryRoot: process.env.SPECBRIDGE_REPOSITORY_ROOT || '.',
-      links: { [issueKey]: file ? [{ file, heading }] : [] }
+      repositoryRoot
     };
+    const result = await buildContext({ issueKey, config, configPath, references });
+    const rendered = options.format === 'json' ? `${JSON.stringify(result, null, 2)}\n` : renderMarkdown(result);
+    if (options.output) await writeFile(options.output, rendered, 'utf8');
+    else process.stdout.write(rendered);
+    return;
   }
   const result = await buildContext({ issueKey, config, configPath });
   const rendered = options.format === 'json' ? `${JSON.stringify(result, null, 2)}\n` : renderMarkdown(result);

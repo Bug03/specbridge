@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
@@ -39,6 +39,35 @@ function sectionForHeading(markdown, targetHeading) {
   const content = lines.slice(start + 1, end).join('\n').trim();
   const scenarios = [...content.matchAll(/^#{1,6}\s+Scenario:\s*(.+)$/gim)].map((match) => match[1].trim());
   return { heading: lines[start].replace(/^#+\s*/, '').trim(), content: content || '_No details under this heading._', scenarios };
+}
+
+async function markdownFiles(directory) {
+  let entries;
+  try { entries = await readdir(directory, { withFileTypes: true }); }
+  catch (error) { if (error.code === 'ENOENT') return []; throw error; }
+  const files = [];
+  for (const entry of entries) {
+    const fullPath = path.join(directory, entry.name);
+    if (entry.isDirectory()) files.push(...await markdownFiles(fullPath));
+    else if (entry.isFile() && entry.name.endsWith('.md')) files.push(fullPath);
+  }
+  return files;
+}
+
+export async function findSpecReferences(repositoryRoot) {
+  const specsRoot = path.join(repositoryRoot, 'openspec', 'specs');
+  const files = await markdownFiles(specsRoot);
+  const references = [];
+  for (const fullPath of files) {
+    const markdown = await readFile(fullPath, 'utf8');
+    const headings = [...markdown.matchAll(/^#{1,6}\s+(Requirement:\s*.+?)\s*#*\s*$/gim)];
+    for (const match of headings) {
+      const heading = match[1].trim();
+      const section = sectionForHeading(markdown, heading);
+      if (section) references.push({ file: path.relative(repositoryRoot, fullPath), heading: section.heading });
+    }
+  }
+  return references.sort((a, b) => a.file.localeCompare(b.file) || a.heading.localeCompare(b.heading));
 }
 
 async function repositoryRevision(root) {
@@ -101,13 +130,13 @@ async function fetchIssue(issueKey, config) {
   };
 }
 
-export async function buildContext({ issueKey, config, configPath }) {
+export async function buildContext({ issueKey, config, configPath, references: selectedReferences }) {
   if (!config || typeof config !== 'object') throw new Error('Configuration must be a JSON object.');
   const mapping = config.links?.[issueKey];
   if (mapping && !Array.isArray(mapping)) throw new Error(`Config links.${issueKey} must be an array.`);
   const configDir = path.dirname(path.resolve(configPath));
-  const root = path.resolve(configDir, config.repositoryRoot || '.');
-  const references = mapping || [];
+  const root = config.repositoryRoot ? path.resolve(configDir, config.repositoryRoot) : configDir;
+  const references = selectedReferences || mapping || [];
   const requirements = [];
   for (const reference of references) {
     if (!reference.file || !reference.heading) throw new Error(`Each link for ${issueKey} needs both "file" and "heading".`);
