@@ -1,65 +1,56 @@
-# Try the first SpecBridge flow
+# Run a PR review
 
-This early CLI release creates a context brief from one Jira issue and the OpenSpec sections you link to it. Jira access is read-only. The brief is saved locally; it is not sent to an AI provider.
+The primary SpecBridge flow starts with a GitHub pull request. Jira and OpenSpec are optional context; you do not need a `.env` file for a basic review.
 
 ## You need
 
 - Node.js 20 or newer.
-- A Jira Cloud site and an account with read access to the project.
-- A Jira API token for that account.
-- An OpenSpec repository checked out on the same machine.
+- GitHub CLI (`gh`). Sign in with an account that can access the repository. Public repositories can be read without private-repository permissions.
+- Codex CLI, signed in on this machine.
 
-## Set up
-
-From the SpecBridge repository, create a local `.env` file:
+Check GitHub access with:
 
 ```sh
-node src/cli.js init
+gh auth status
 ```
 
-Edit `.env` and set the Jira site, email, and token. Those are the only required settings. Run the command from your project root; SpecBridge finds OpenSpec requirements under `openspec/specs` and lets you choose the relevant requirement when there are several. For example:
+## Start a review
 
-```dotenv
-SPECBRIDGE_JIRA_BASE_URL=https://your-domain.atlassian.net
-SPECBRIDGE_JIRA_EMAIL=you@example.com
-SPECBRIDGE_JIRA_API_TOKEN=your-api-token
+From any directory where the SpecBridge source is available:
+
+```sh
+node /path/to/specbridge/src/cli.js review https://github.com/owner/repository/pull/123
 ```
 
-Then create a brief:
+Replace `/path/to/specbridge` with the location where you cloned SpecBridge. The command fetches the pull request into a temporary checkout, asks Codex to review it read-only, prints a local report, then removes the temporary checkout. It does not modify your working repository or post a comment on GitHub.
+
+To save the report:
+
+```sh
+node /path/to/specbridge/src/cli.js review https://github.com/owner/repository/pull/123 --output review.md
+```
+
+If GitHub says it cannot resolve the repository, check that the URL is correct and the signed-in account has access. Sign in with `gh auth login` if needed. Private repositories require an account that is a member or collaborator.
+
+## Add Jira context
+
+The Jira context command is a separate, optional workflow. Create a local `.env` for Jira credentials:
+
+```sh
+node /path/to/specbridge/src/cli.js init
+```
+
+Fill in Jira site URL, account email, and a read-only API token. Then run:
 
 ```sh
 node /path/to/specbridge/src/cli.js context PROJ-123
-node /path/to/specbridge/src/cli.js context PROJ-123 --format json --output context-brief.json
 ```
 
-Replace `/path/to/specbridge` with the path where you cloned SpecBridge. The Markdown brief prints to the terminal by default. `--output context-brief.md` saves it to a file instead. The JSON format is intended for later agent integrations. The `.env` file is loaded automatically from the current project directory and is ignored by Git. The issue key is passed to `context` each time.
-
-## Optional advanced config
-
-For multiple saved Jira-to-spec mappings, you can still use a JSON config with `--config`. Paths are relative to the config file:
-
-```json
-{
-  "jira": { "baseUrl": "https://your-domain.atlassian.net" },
-  "repositoryRoot": ".",
-  "links": {
-    "PROJ-123": [
-      {
-        "file": "openspec/specs/jira-spec-linking/spec.md",
-        "heading": "Requirement: Link a Jira issue to explicit spec references"
-      }
-    ]
-  }
-}
-```
-
-The selected section includes nested scenarios up to the next heading at the same or a higher level. A missing file or heading is reported as an error instead of being silently skipped. Jira text and spec text are treated as source material, not instructions for SpecBridge itself.
+SpecBridge scans the current directory for OpenSpec requirements and lets you choose the sections relevant to the Jira issue. The `.env` file is ignored by Git. Never commit or share it.
 
 ## Current limits
 
-- One issue is fetched per command; Jira comments and attachments are not included.
-- The simple setup asks you to select relevant OpenSpec requirements when running a Jira issue. There is no shared link database or stale-link history yet.
-- The brief identifies the repository's current Git commit when available; it does not yet verify that Jira and specs came from the same checkout.
-- There is no ChunkHound, Codex, Claude, GitHub PR, Docker, or web interface in this slice.
-
-The Jira connector uses the Jira Cloud issue endpoint and requests only summary, description, status, type, labels, and project fields. See [Atlassian's issue API](https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/) and [API token guidance](https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/).
+- The Codex reviewer is implemented, but live review depends on `gh` access to the target repository and a working Codex CLI login.
+- Jira/OpenSpec context is not yet automatically attached to a PR review.
+- ChunkHound search, Claude review, saved review history, and GitHub comment publishing are not implemented.
+- GitHub comments and approvals are never written by the current review command.

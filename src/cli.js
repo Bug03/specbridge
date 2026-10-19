@@ -7,6 +7,7 @@ import { promisify } from 'node:util';
 import { createInterface } from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
 import { buildContext, findSpecReferences } from './context.js';
+import { reviewPullRequest } from './pr-review.js';
 
 const execFileAsync = promisify(execFile);
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -17,6 +18,7 @@ function usage() {
 Usage:
   specbridge init [--env PATH]
   specbridge context [ISSUE-123] [--env PATH] [--format md|json] [--output PATH]
+  specbridge review <GITHUB_PR_URL> [--output PATH]
 
 Environment:
   SPECBRIDGE_JIRA_BASE_URL   Jira Cloud site URL
@@ -109,13 +111,22 @@ async function main() {
   }
   const { options, positional } = parseArgs(args);
   if (options.help) {
-    console.log(command === 'context'
+    console.log(command === 'review'
+      ? `Usage: specbridge review https://github.com/owner/repo/pull/123 [--output PATH]\n\nClones the PR into a temporary directory and runs a read-only Codex review. It never posts to GitHub.`
+      : command === 'context'
       ? `Usage: specbridge context [ISSUE-123] [--env PATH] [--config PATH] [--format md|json] [--output PATH]\n\nReads Jira issue fields and the OpenSpec reference from .env. It does not write to Jira.`
       : usage());
     return;
   }
   if (command === 'init') {
     await init(options.env);
+    return;
+  }
+  if (command === 'review') {
+    if (!positional[0] || positional.length > 1) throw new Error('Provide one GitHub PR URL.');
+    const report = await reviewPullRequest(positional[0]);
+    if (options.output) await writeFile(options.output, report, 'utf8');
+    else process.stdout.write(report);
     return;
   }
   if (command !== 'context') throw new Error(`Unknown command: ${command}\n\n${usage()}`);

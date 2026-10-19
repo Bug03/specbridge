@@ -1,8 +1,8 @@
 # SpecBridge
 
-**Help AI agents understand why a ticket exists before they touch the code.**
+**Review pull requests with clear evidence for both developers and product managers.**
 
-SpecBridge connects a Jira ticket to the project requirements behind it, gives a coding agent the relevant context, and helps the team review whether the finished change matches the plan.
+SpecBridge reviews a PR in an isolated, read-only checkout. Jira and OpenSpec add product intent and acceptance criteria when available; they are context for the review, not a prerequisite to start one.
 
 ## Why use it?
 
@@ -12,25 +12,25 @@ SpecBridge connects a Jira ticket to the project requirements behind it, gives a
 
 ## How it works
 
-1. Choose a Jira ticket.
-2. Connect the project requirements that apply.
-3. Give the coding agent a clear brief, then review the resulting change together.
+1. Give SpecBridge a GitHub PR URL.
+2. Review the change for product conformance, implementation risks, and maintainability.
+3. Inspect findings tied to the exact PR revision; decide what to do as a team.
 
 SpecBridge is designed to run inside your own environment. You control how it connects to Jira, your code, and the AI service you choose.
 
 ## Try it
 
-The first runnable flow reads a Jira issue, connects it to an OpenSpec requirement, and produces a context brief. Set it up in `.env` by following the [quickstart](docs/quickstart.md).
+Start a read-only Codex review with the [quickstart](docs/quickstart.md). No Jira setup is needed for a basic PR review.
 
 ## Project status
 
-SpecBridge is an early open-source project. The Jira-to-spec context flow is the first working slice; PR review, AI providers, ChunkHound, and Docker deployment are still planned.
+SpecBridge is an early open-source project. The first PR-first Codex CLI flow is available experimentally. Jira/OpenSpec context, ChunkHound search, Claude support, and self-hosted service deployment are being added in stages.
 
 ## Get involved
 
 We welcome feedback from developers, product managers, and maintainers. Start with the [product overview](docs/product-brief.md), see the [roadmap](docs/roadmap.md), or help shape the work in GitHub Issues.
 
-Technical details for contributors are in the [implementation plan](docs/implementation-plan.md). The current CLI runs locally in your environment; a self-hosted service deployment guide will follow.
+The [review method](docs/review-method.md) describes how findings stay grounded and review output remains under human control. Technical details are in the [implementation plan](docs/implementation-plan.md).
 
 ## License
 

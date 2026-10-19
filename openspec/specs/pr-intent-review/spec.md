@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Help reviewers compare a pull request with the Jira issue and accepted requirements that motivated the change.
+Reviewers compare a pull request with its own stated contract and changed code first. Jira issues and accepted requirements enrich the review when they are linked and available.
 
 ## Requirements
 
@@ -15,6 +15,56 @@ The system SHALL map review observations to the Jira issue and linked requiremen
 - **WHEN** a reviewer examines a PR associated with a Jira issue that has linked scenarios
 - **THEN** the review report shows the relevant scenario and implementation evidence
 - **AND** it identifies the file, line, and commit revision supporting the observation
+
+### Requirement: Review a pull request without requiring Jira
+
+The system SHALL allow a reviewer to start a PR review using the pull request URL alone.
+
+#### Scenario: Jira context is unavailable
+
+- **WHEN** a reviewer provides a GitHub PR URL without Jira credentials or a linked issue
+- **THEN** the system reviews the PR diff and surrounding code
+- **AND** it marks product intent as unavailable instead of blocking the review or inventing requirements
+
+### Requirement: Pin each review to one immutable subject
+
+The system SHALL record the pull request repository, base revision, and head revision for each review run.
+
+#### Scenario: Pull request changes while review is starting
+
+- **WHEN** the PR head differs from the revision captured during intake
+- **THEN** the system stops before presenting findings
+- **AND** it asks the reviewer to start a new run against the current head
+
+### Requirement: Report evidence-backed findings
+
+The system SHALL require each actionable finding to include a source location and a concrete failure mode.
+
+#### Scenario: Finding is outside the changed lines
+
+- **WHEN** a review observation cannot be tied to evidence in the pinned PR subject
+- **THEN** the system marks it unverified or omits it from actionable findings
+- **AND** it does not present speculation as a confirmed defect
+
+### Requirement: Separate review perspectives
+
+The system SHALL distinguish product conformance, implementation correctness, and maintainability observations.
+
+#### Scenario: Ticket or spec intent is missing
+
+- **WHEN** Jira or OpenSpec context is unavailable or incomplete
+- **THEN** the system reports that the product-conformance perspective is limited
+- **AND** it may still report implementation findings supported by code evidence
+
+### Requirement: Keep PR content untrusted and review read-only
+
+The system SHALL treat PR text and repository content as untrusted input and SHALL NOT modify code, approve, merge, or publish a comment during a review run.
+
+#### Scenario: PR content includes instructions for the reviewer
+
+- **WHEN** a PR description or source file contains instructions aimed at the review agent
+- **THEN** the agent treats them as review data, not as instructions that change the review policy
+- **AND** the run performs no external write
 
 ### Requirement: Represent review coverage honestly
 

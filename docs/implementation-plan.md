@@ -2,18 +2,18 @@
 
 ## Product outcome
 
-SpecBridge gives a self-hosted team a traceable path from **Jira intent → OpenSpec requirements → codebase context → Codex/Claude review → PR closure**.
+SpecBridge gives a team a traceable path from **GitHub PR → isolated review → evidence-backed findings → optional Jira/OpenSpec intent → human triage**.
 
-The first release should prove the chain with one repository, one Jira project, one GitHub repository, and one reviewer provider. Keep adapters provider-neutral so a second provider can be added without changing findings or report formats.
+The first release should make a PR review useful before asking a team to connect Jira, OpenSpec, or a code-indexing service. Add those as optional evidence sources behind the core review flow. Keep reviewer adapters provider-neutral so a second provider can be added without changing findings or report formats.
 
 ### Recommended first-stack defaults
 
 - **Deployment:** Docker Compose, single team, customer-managed persistent storage.
-- **Ticket tracker:** Jira Cloud, read-only for the first release.
+- **Ticket tracker:** Jira Cloud, optional read-only context.
 - **Specs:** OpenSpec Markdown tracked in the target repository.
 - **Code context:** ChunkHound MCP over stdio inside the review worker; exact search first, semantic/deep research when configured and needed.
 - **Reviewer order:** build the Codex CLI adapter first for the initial end-to-end slice, then Claude Code CLI. Keep the provider contract neutral so a team can choose either at runtime.
-- **Review target:** GitHub PR after Jira-to-spec context export works.
+- **Review target:** GitHub PR is the primary input from the first runnable slice.
 
 These are sequencing choices for an initial implementation, not requirements that every self-hosted team use those products.
 
@@ -21,11 +21,12 @@ These are sequencing choices for an initial implementation, not requirements tha
 
 ```mermaid
 flowchart LR
-  J[Jira issue] --> C[Context builder]
-  O[OpenSpec files] --> C
-  R[Repository and PR diff] --> I[ChunkHound index/search]
-  I --> C
-  C --> A[Reviewer adapter]
+  R[GitHub PR] --> S[Isolated subject snapshot]
+  S --> I[ChunkHound or direct code context]
+  J[Jira issue] -. optional .-> C[Intent context]
+  O[OpenSpec files] -. optional .-> C
+  I --> A[Reviewer adapter]
+  C --> A
   A --> X[Codex CLI or Claude Code CLI]
   X --> V[Evidence and schema validator]
   V --> P[Product + engineering report]
@@ -33,11 +34,11 @@ flowchart LR
   H --> G[Optional GitHub/Jira writeback]
 ```
 
-**SpecBridge owns:** source connectors, explicit issue-to-spec links, immutable run metadata, context assembly, review orchestration, normalized findings, evidence validation, permissions, and report rendering.
+**SpecBridge owns:** PR intake, immutable subject metadata, optional source connectors and issue-to-spec links, context assembly, review orchestration, normalized findings, evidence validation, permissions, and report rendering.
 
-**ChunkHound owns:** repository indexing and code search/research. Start with its MCP `search` capability behind an adapter; add `code_research` as an opt-in for cross-file questions when configured. Use `search` for targeted retrieval and verify citations independently in SpecBridge.
+**ChunkHound owns:** optional repository indexing and code search/research. Start with its MCP `search` capability behind an adapter; add `code_research` when configured. It accelerates discovery; SpecBridge verifies every cited location against the pinned subject tree. Direct Git/rg inspection remains an explicit fallback.
 
-**Codex/Claude own:** reasoning over the provided task and retrieved evidence. Each runs through a separate adapter and emits the same versioned finding schema. They should not modify the PR in review mode.
+**Codex/Claude own:** reasoning over the PR, optional intent, and retrieved evidence. Each runs through a separate adapter and emits the same versioned finding schema. They should not modify the PR in review mode.
 
 **OpenSpec owns:** accepted, versioned requirements and scenarios. **Jira owns:** issue workflow, assignee, and execution tracking. SpecBridge links them; it should not silently become a competing source of truth.
 
@@ -45,19 +46,17 @@ flowchart LR
 
 ### M0 — Lock the first slice
 
-**Decisions:** Jira Cloud first; GitHub first; OpenSpec Markdown in a repository; self-hosted Docker deployment; ChunkHound for codebase context; Codex CLI or Claude Code CLI as the first reviewer.
+**Decisions:** GitHub PR first; local isolated checkout; Codex CLI first; Jira Cloud and OpenSpec as optional intent context; ChunkHound as an optional research accelerator; self-hosting before any hosted control plane.
 
 **Deliverables:** reviewed OpenSpec changes, architecture diagram, threat/data-flow notes, sample input/output fixture.
 
 **Done when:** the project can explain which system owns each fact, what leaves the self-hosted environment, and how the first report will be judged.
 
-### M1 — Self-hosted foundation
+### M1 — PR intake and first reviewer
 
-**Build:** application service, persistent state, configuration validation, health/readiness endpoint, container/development setup, upgrade and backup notes. Do not build multi-tenancy or a hosted control plane yet.
+**Build:** accept a GitHub PR URL; check repository access and PR identity; capture base/head SHAs; fetch the PR into a disposable checkout; run a read-only Codex review; produce a local report with evidence and coverage limits. Do not post comments or approvals. Abort if the checked-out head differs from the captured head.
 
-**Security/data rules:** secrets are injected through operator-managed configuration; logs redact credentials and sensitive ticket content; no telemetry by default; outbound services are listed; model egress is opt-in and visible. Support local/private model endpoints where the chosen adapter allows them.
-
-**Done when:** a contributor can start the app in a clean local environment from the guide, see readiness diagnostics, stop it, restart it without losing configured state, and understand all required outbound connections.
+**Done when:** a reviewer can run one command against a PR, see which exact head was reviewed, inspect findings tied to changed code, and retain the local repository unchanged.
 
 ### M2 — Jira and OpenSpec context
 
@@ -77,7 +76,7 @@ flowchart LR
 
 **Done when:** an agent review can request relevant code context, every returned code citation resolves in the indexed revision, excluded files stay excluded, and the system reports when semantic search is unavailable rather than pretending it ran.
 
-### M4 — Reviewer adapters (Codex and Claude)
+### M4 — Second reviewer adapter
 
 Define one internal contract:
 
@@ -100,23 +99,15 @@ ReviewResult
 
 **Done when:** the same fixture produces a valid normalized report from either adapter; process failures/timeouts are visible; no provider can post GitHub comments or edit files through the review adapter.
 
-### M5 — PR intent review
+### M5 — Re-review and controlled writeback
 
-**Build:** load PR metadata, exact base/head SHAs and diff; map changed areas to linked requirements; retrieve affected call sites/context with ChunkHound; ask the reviewer for product conformance and engineering findings separately; validate evidence and origin against the base diff.
+**Build:** compare a new head against prior runs; keep review history; classify findings as resolved, still present, regressed, new, or unverified. Keep any eventual GitHub/Jira writeback as a draft for explicit review.
 
-**Report sections:** executive summary; PM intent/acceptance coverage; Dev correctness/security/testing/maintainability; evidence and confidence; checked/not-checked coverage; questions; provider/model/revision provenance.
+**Done when:** a re-review is pinned to the new SHA and every previous finding receives an evidence-backed status; no external write occurs without a user action.
 
-**Done when:** report is pinned to a SHA; findings include a concrete failure mode plus verifiable path/line; pre-existing vs introduced is explicit or uncertain; a reviewer can reproduce why the finding appeared.
+### M6 — Release and public onboarding
 
-### M6 — Re-review and controlled writeback
-
-**Build:** compare new head against prior run; keep history; classify findings as resolved, still present, regressed, new, or unable to verify. Add draft-only Jira/OpenSpec updates and GitHub review preview.
-
-**Done when:** no external write occurs without an explicit user action; writeback is idempotent where possible, attributable, and auditable; old run remains tied to its original SHA.
-
-### M7 — Release and public onboarding
-
-**Build:** one-command self-host guide, environment example without secrets, backup/restore guide, sample repo/demo ticket/report, troubleshooting, security/data-flow page, and landing page.
+**Build:** local/self-host quickstart, environment example without secrets, backup/restore guide, sample repo/demo report, troubleshooting, security/data-flow page, and landing page.
 
 **Done when:** a new contributor can deploy, connect a test Jira project, create a spec link, export context, and run one review without relying on an undocumented maintainer step.
 
@@ -126,13 +117,12 @@ Before broad release, create a small evaluation set with expected findings and c
 
 ## First implementation order
 
-1. Write/agree on the M1 and M2 OpenSpec changes.
-2. Define config, run/finding schemas, and context provenance.
-3. Implement OpenSpec parser and fixture-backed Markdown/JSON output.
-4. Add Jira read-only connector and issue-to-spec linking.
-5. Add self-hosted deployment and secrets/redaction boundary.
-6. Add ChunkHound search adapter and citation verification.
-7. Add one reviewer adapter, then the second.
-8. Add GitHub PR review and re-review loop.
+1. Capture GitHub PR metadata and immutable base/head identity.
+2. Fetch a disposable subject checkout and run a read-only Codex review.
+3. Define finding schema, evidence and origin checks, and review history.
+4. Enrich a PR review with linked Jira/OpenSpec context when available.
+5. Add ChunkHound search as a verified discovery accelerator.
+6. Add Claude as a second reviewer adapter.
+7. Add human-gated review comments, re-review, and self-hosted deployment.
 
-This order keeps the product useful before agent orchestration, and gives each later review an auditable intent/context foundation.
+This order makes PR review useful on its own, while keeping product intent and repository search available as explicit enrichment.
