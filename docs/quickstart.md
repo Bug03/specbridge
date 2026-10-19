@@ -1,28 +1,30 @@
-# Run a PR review
+# Run the current prototype
 
-The primary SpecBridge flow starts with a GitHub pull request. Jira and OpenSpec are optional context; you do not need a `.env` file for a basic review.
+This guide describes what is runnable today. The current PR command is an experimental single-pass Codex review; it does **not** yet meet the planned complete-review requirement for local ChunkHound, a local Docker reranker, selectable Codex/Claude, staged validation, or the review UI.
 
-## You need
+## Prerequisites
 
 - Node.js 20 or newer.
-- GitHub CLI (`gh`). Sign in with an account that can access the repository. Public repositories can be read without private-repository permissions.
-- Codex CLI, signed in on this machine.
+- GitHub CLI (`gh`) signed in with access to the target repository.
+- Codex CLI installed and signed in.
 
-Check GitHub access with:
+Check access with:
 
 ```sh
 gh auth status
 ```
 
-## Start a review
-
-From any directory where the SpecBridge source is available:
+## Start a prototype review
 
 ```sh
 node /path/to/specbridge/src/cli.js review https://github.com/owner/repository/pull/123
 ```
 
-Replace `/path/to/specbridge` with the location where you cloned SpecBridge. The command fetches the pull request into a temporary checkout, asks Codex to review it read-only, prints a local report, then removes the temporary checkout. It does not modify your working repository or post a comment on GitHub.
+Replace `/path/to/specbridge` with the location where you cloned SpecBridge. The command fetches the pull request into a temporary checkout, asks Codex to review it read-only, prints a local report, then removes the temporary checkout. It does not modify your working repository or post a comment on GitHub. The report is in English by default. Choose Vietnamese with `--language vi` (or `--lang vi`):
+
+```sh
+node /path/to/specbridge/src/cli.js review https://github.com/owner/repository/pull/123 --language vi
+```
 
 To save the report:
 
@@ -30,27 +32,28 @@ To save the report:
 node /path/to/specbridge/src/cli.js review https://github.com/owner/repository/pull/123 --output review.md
 ```
 
-If GitHub says it cannot resolve the repository, check that the URL is correct and the signed-in account has access. Sign in with `gh auth login` if needed. Private repositories require an account that is a member or collaborator.
+To save a Vietnamese report, use `--language vi --output review.md`; SpecBridge saves it as `review-vi.md`. English keeps the requested filename unchanged. Reports separate **Business review** (user outcomes and stated requirements) from **Technical review** (evidence-backed implementation findings), followed by coverage and limits. When Jira/OpenSpec context is not available, business conformance is marked unknown rather than inferred.
+
+The Codex CLI model defaults to `gpt-5.6-terra` in this prototype. Set `SPECBRIDGE_CODEX_MODEL` to a model supported by your Codex account if needed.
 
 ## Add Jira context
 
-The Jira context command is a separate, optional workflow. Create a local `.env` for Jira credentials:
+The Jira context command is separate from PR review. Create a local `.env` template:
 
 ```sh
 node /path/to/specbridge/src/cli.js init
 ```
 
-Fill in Jira site URL, account email, and a read-only API token. Then run:
+Fill in Jira site URL, account email, and a read-only API token, then run:
 
 ```sh
 node /path/to/specbridge/src/cli.js context PROJ-123
 ```
 
-SpecBridge scans the current directory for OpenSpec requirements and lets you choose the sections relevant to the Jira issue. The `.env` file is ignored by Git. Never commit or share it.
+Use the Atlassian account email that created the API token and the site URL origin, such as `https://your-domain.atlassian.net` (do not paste a project or board URL). SpecBridge checks Jira authentication before looking up the issue. An HTTP 401 means Jira rejected the email/token pair; replace the token and confirm the account email. After authentication succeeds, an HTTP 404 means the issue key may be wrong or the account may not have Browse Projects access. See Atlassian's [API token and Basic authentication guide](https://developer.atlassian.com/cloud/jira/platform/basic-auth-for-rest-apis/).
 
-## Current limits
+The `.env` file is ignored by Git. Never commit or share it. If a token has been exposed, revoke it in Atlassian and create a replacement.
 
-- The Codex reviewer is implemented, but live review depends on `gh` access to the target repository and a working Codex CLI login.
-- Jira/OpenSpec context is not yet automatically attached to a PR review.
-- ChunkHound search, Claude review, saved review history, and GitHub comment publishing are not implemented.
-- GitHub comments and approvals are never written by the current review command.
+## Planned full review setup
+
+The full workflow is not implemented yet. It will require local Docker services for ChunkHound and reranking, and will let the operator choose Codex CLI or Claude Code CLI. Until those required stages are available, treat the current output as a preliminary review rather than a complete deep review. See the [implementation plan](implementation-plan.md) and [AI setup prompt](AI-SETUP-PROMPT.md).

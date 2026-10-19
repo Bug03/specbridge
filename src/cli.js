@@ -18,7 +18,7 @@ function usage() {
 Usage:
   specbridge init [--env PATH]
   specbridge context [ISSUE-123] [--env PATH] [--format md|json] [--output PATH]
-  specbridge review <GITHUB_PR_URL> [--output PATH]
+  specbridge review <GITHUB_PR_URL> [--language en|vi] [--output PATH]
 
 Environment:
   SPECBRIDGE_JIRA_BASE_URL   Jira Cloud site URL
@@ -30,7 +30,7 @@ Run "specbridge context --help" for context command options.`;
 }
 
 function parseArgs(args) {
-  const options = { format: 'md', env: '.env' };
+  const options = { format: 'md', env: '.env', language: 'en' };
   const positional = [];
   for (let i = 0; i < args.length; i += 1) {
     const arg = args[i];
@@ -38,11 +38,12 @@ function parseArgs(args) {
     else if (arg === '--config') options.config = args[++i];
     else if (arg === '--env') options.env = args[++i];
     else if (arg === '--format') options.format = args[++i];
+    else if (arg === '--language' || arg === '--lang') options.language = args[++i];
     else if (arg === '--output' || arg === '-o') options.output = args[++i];
     else if (arg.startsWith('-')) throw new Error(`Unknown option: ${arg}`);
     else positional.push(arg);
   }
-  if ((args.includes('--config') && !options.config) || (args.includes('--env') && !options.env) || (options.output === undefined && (args.includes('--output') || args.includes('-o')))) {
+  if ((args.includes('--config') && !options.config) || (args.includes('--env') && !options.env) || (options.output === undefined && (args.includes('--output') || args.includes('-o'))) || (options.language === undefined && (args.includes('--language') || args.includes('--lang')))) {
     throw new Error('An option is missing its value.');
   }
   return { options, positional };
@@ -112,7 +113,7 @@ async function main() {
   const { options, positional } = parseArgs(args);
   if (options.help) {
     console.log(command === 'review'
-      ? `Usage: specbridge review https://github.com/owner/repo/pull/123 [--output PATH]\n\nClones the PR into a temporary directory and runs a read-only Codex review. It never posts to GitHub.`
+      ? `Usage: specbridge review https://github.com/owner/repo/pull/123 [--language en|vi] [--output PATH]\n\nCreates a read-only Codex review in English by default. Use --language vi for Vietnamese. When saving a Vietnamese report, -vi is added before the file extension. It never posts to GitHub.`
       : command === 'context'
       ? `Usage: specbridge context [ISSUE-123] [--env PATH] [--config PATH] [--format md|json] [--output PATH]\n\nReads Jira issue fields and the OpenSpec reference from .env. It does not write to Jira.`
       : usage());
@@ -124,8 +125,13 @@ async function main() {
   }
   if (command === 'review') {
     if (!positional[0] || positional.length > 1) throw new Error('Provide one GitHub PR URL.');
-    const report = await reviewPullRequest(positional[0]);
-    if (options.output) await writeFile(options.output, report, 'utf8');
+    if (!['en', 'vi'].includes(options.language)) throw new Error('--language must be en or vi.');
+    const report = await reviewPullRequest(positional[0], { language: options.language });
+    if (options.output) {
+      const outputPath = localizedOutputPath(options.output, options.language);
+      await writeFile(outputPath, report, 'utf8');
+      console.log(`Review saved to ${outputPath}`);
+    }
     else process.stdout.write(report);
     return;
   }
@@ -155,6 +161,13 @@ async function main() {
   const rendered = options.format === 'json' ? `${JSON.stringify(result, null, 2)}\n` : renderMarkdown(result);
   if (options.output) await writeFile(options.output, rendered, 'utf8');
   else process.stdout.write(rendered);
+}
+
+function localizedOutputPath(outputPath, language) {
+  if (language !== 'vi') return outputPath;
+  const extension = path.extname(outputPath);
+  const stem = outputPath.slice(0, outputPath.length - extension.length);
+  return stem.endsWith('-vi') ? outputPath : `${stem}-vi${extension}`;
 }
 
 function renderMarkdown(data) {

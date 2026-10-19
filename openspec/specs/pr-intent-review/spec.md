@@ -40,6 +40,8 @@ The system SHALL record the pull request repository, base revision, and head rev
 
 The system SHALL require each actionable finding to include a source location and a concrete failure mode.
 
+Each finding note SHALL also show impact, severity, likelihood, reproduction or a concrete scenario, code trail, assumptions, downgrade factors, and whether the cited behavior is introduced by the PR. Unknown values SHALL be labeled unknown rather than guessed.
+
 #### Scenario: Finding is outside the changed lines
 
 - **WHEN** a review observation cannot be tied to evidence in the pinned PR subject
@@ -85,3 +87,35 @@ The system SHALL associate findings with a reviewed commit and support recheckin
 - **WHEN** a new head revision is reviewed
 - **THEN** findings can be marked resolved, still present, regressed, new, or unable to verify
 - **AND** the prior review remains associated with its original commit
+
+### Requirement: Show review progress and per-finding evidence
+
+The system SHALL present a review run as a visible sequence of stages and keep each finding's evidence, validation state, and outcome inspectable.
+
+#### Scenario: Review is still running
+
+- **WHEN** a reviewer opens an active run
+- **THEN** the UI shows the current stage, completed stages, findings discovered so far, and any blocked or incomplete work
+- **AND** it does not present a partial run as a final review
+
+#### Scenario: Reviewer opens a finding
+
+- **WHEN** a reviewer selects a finding
+- **THEN** the UI shows its severity, concrete failure scenario, file and line at the pinned head SHA, base-diff evidence, and validation status
+- **AND** the reviewer can triage it as fix, won't fix, or follow-up with a short reason
+
+### Requirement: Draft a review comment for human copy
+
+The system SHALL let a reviewer assemble a final comment from completed findings and copy it for manual posting after review completion.
+
+#### Scenario: Final review is ready
+
+- **WHEN** the reviewer confirms the final summary and selected findings
+- **THEN** the UI provides a copyable GitHub review comment
+- **AND** SpecBridge does not post, approve, or submit it to GitHub automatically
+
+#### Scenario: Review is partial or incomplete
+
+- **WHEN** required review stages or evidence validation are incomplete
+- **THEN** the UI labels the draft as partial and includes its coverage limits
+- **AND** it does not imply that the review is complete
