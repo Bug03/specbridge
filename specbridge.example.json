@@ -1,0 +1,14 @@
+{
+  "jira": {
+    "baseUrl": "https://your-domain.atlassian.net"
+  },
+  "repositoryRoot": ".",
+  "links": {
+    "PROJ-123": [
+      {
+        "file": "openspec/specs/example/spec.md",
+        "heading": "Requirement: Describe the expected behavior"
+      }
+    ]
+  }
+}

@@ -18,15 +18,19 @@ SpecBridge connects a Jira ticket to the project requirements behind it, gives a
 
 SpecBridge is designed to run inside your own environment. You control how it connects to Jira, your code, and the AI service you choose.
 
+## Try it
+
+The first runnable flow can read a Jira issue, connect it to selected OpenSpec requirements, and produce a context brief. See the [quickstart](docs/quickstart.md) to run it locally.
+
 ## Project status
 
-SpecBridge is an early open-source project. We are building the first working flow now; features described in the roadmap are planned and may change.
+SpecBridge is an early open-source project. The Jira-to-spec context flow is the first working slice; PR review, AI providers, ChunkHound, and Docker deployment are still planned.
 
 ## Get involved
 
 We welcome feedback from developers, product managers, and maintainers. Start with the [product overview](docs/product-brief.md), see the [roadmap](docs/roadmap.md), or help shape the work in GitHub Issues.
 
-Technical details for contributors are in the [implementation plan](docs/implementation-plan.md). Self-hosting instructions will be added when the first runnable release is ready.
+Technical details for contributors are in the [implementation plan](docs/implementation-plan.md). The current CLI runs locally in your environment; a self-hosted service deployment guide will follow.
 
 ## License
 

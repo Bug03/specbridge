@@ -1,0 +1,17 @@
+{
+  "name": "specbridge",
+  "version": "0.1.0",
+  "private": false,
+  "description": "Build source-linked Jira and OpenSpec context briefs for coding agents.",
+  "type": "module",
+  "bin": {
+    "specbridge": "./src/cli.js"
+  },
+  "scripts": {
+    "start": "node ./src/cli.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT"
+}

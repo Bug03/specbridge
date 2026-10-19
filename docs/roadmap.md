@@ -18,11 +18,12 @@ This is a proposed build order, not a delivery promise. Each milestone should en
 
 ## M2 — Jira + OpenSpec context
 
-- [ ] Read Jira issues with least-privilege access.
-- [ ] Discover OpenSpec requirement/scenario references in a configured repository.
-- [ ] Link issue keys to explicit requirement/scenario IDs and source revision.
-- [ ] Detect stale links and missing/ambiguous acceptance criteria.
-- [ ] Export portable Markdown and JSON context briefs with provenance.
+- [x] Read selected Jira issue fields with read-only access.
+- [x] Link issue keys to explicit OpenSpec Markdown headings in local configuration.
+- [x] Export Markdown and JSON context briefs with source paths and the current repository revision.
+- [ ] Discover OpenSpec references, persist links, and detect stale links or missing/ambiguous acceptance criteria.
+
+The first local CLI slice is available; this milestone is still in progress until links and freshness can be managed beyond a local config file.
 
 ## M3 — ChunkHound codebase context
 

@@ -6,3 +6,5 @@ node_modules/
 dist/
 coverage/
 .cache/
+specbridge.config.json
+context-brief.*
