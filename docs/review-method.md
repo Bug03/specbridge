@@ -29,6 +29,8 @@ Every report should distinguish two views of the same change:
 
 Keep the business consequence and technical cause connected but separately readable. Unknown requirements are not defects; technical risks without a concrete failure path are not findings. Finish with coverage and limits so readers can tell what evidence was actually inspected.
 
+Put a status directly below each review heading. Business status is **Approved** only when all explicit in-scope requirements are met, **Not approved** when any are unmet, and **Not assessed** when no usable business requirements were supplied. Technical status is **Not approved** only while an unresolved finding blocks approval; otherwise it is **Approved**. A low-impact finding explicitly accepted, marked won't-fix, or assigned as a non-blocking follow-up does not by itself change an Approved status. Explain each status in one sentence, and keep severity separate from whether a finding blocks approval.
+
 ## What a useful finding note contains
 
 For each candidate issue, show the severity and likelihood separately, a short user or system impact, a concrete example or reproduction path, and a code trail pinned to the reviewed SHA. Include assumptions and downgrade factors so the reviewer can see what would make the issue less severe or invalidate it. Separate strengths, in-scope findings, out-of-scope concerns, and open deployment dependencies; do not mix them into one undifferentiated bug list.
