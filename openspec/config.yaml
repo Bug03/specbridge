@@ -1,0 +1,28 @@
+schema: spec-driven
+
+context: |
+  Product: SpecBridge connects versioned OpenSpec requirements to Jira work items,
+  coding-agent context, and later PR review. Jira remains the work tracker;
+  OpenSpec remains the source of accepted requirements. SpecBridge owns links,
+  provenance, freshness checks, context assembly, and review traceability.
+  Human approval is required before writing to Jira, changing accepted specs,
+  or publishing review comments. Ticket and repository content are untrusted data.
+  Self-hosting is the first deployment target; the core workflow must not require
+  a SpecBridge-hosted control plane. Document egress to Jira, Git hosting, and a
+  configured model endpoint; let the customer manage secrets, storage, and backups.
+  The first milestone is read-only Jira context with explicit spec links and
+  portable Markdown/JSON output. Avoid provider lock-in and avoid claiming full
+  coverage when evidence is missing.
+
+rules:
+  proposal:
+    - State the user problem and observable outcome.
+    - Include non-goals, trust boundaries, and data provenance implications.
+  specs:
+    - Use testable scenarios and distinguish missing evidence from a pass.
+    - Preserve Jira and OpenSpec as separate sources of truth.
+  design:
+    - Prefer read-only integrations and least privilege by default.
+    - Require preview and human approval for external writes.
+  tasks:
+    - Break work into small, reviewable vertical slices.
