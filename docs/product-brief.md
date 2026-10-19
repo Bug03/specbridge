@@ -12,9 +12,9 @@ Help teams carry accepted product and engineering intent from project specs into
 
 ## Core workflow
 
-`OpenSpec requirement → Jira issue link → agent context brief → implementation → PR evidence → reviewed spec update`
+`OpenSpec requirement → Jira issue link → ChunkHound code context → Codex/Claude review → PR evidence → reviewed spec update`
 
-The first useful output is a context brief, not an autonomous approval. It should include ticket facts, linked requirement/scenario text, source revisions, relevant project guidance, and unresolved questions.
+The first useful output is a context brief, not an autonomous approval. It should include ticket facts, linked requirement/scenario text, source revisions, ChunkHound-retrieved code context, relevant project guidance, and unresolved questions. Codex CLI and Claude Code CLI are reviewer options behind the same provider-neutral contract; neither gets permission to change code or publish a review in the initial review flow.
 
 ## Product boundaries
 

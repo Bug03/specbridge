@@ -1,40 +1,64 @@
 # Roadmap
 
-This roadmap describes intent, not delivery promises. Scope will change as contributors test the workflow.
+This is a proposed build order, not a delivery promise. Each milestone should end with something a contributor can run or inspect. The detailed plan and acceptance criteria are in [implementation-plan.md](implementation-plan.md).
 
-## M0 — Project foundation
+## M0 — Agree on the product contract
 
-- [x] Define product boundaries and public contribution path.
-- [x] Adopt OpenSpec for versioned product requirements.
-- [ ] Agree on the first Jira-to-spec context workflow.
+- [x] Define the product boundaries and public contribution path.
+- [x] Adopt OpenSpec for versioned requirements.
 - [x] Set self-hosting as the first deployment target.
+- [ ] Agree on supported first target: Jira Cloud, GitHub, OpenSpec Markdown, ChunkHound, and one reviewer CLI.
 
-## M1 — Read-only Jira to agent context
+## M1 — Self-hosted foundation
 
-- [ ] Connect to a Jira Cloud site with least-privilege read access.
-- [ ] Discover OpenSpec requirements and scenarios in a repository.
-- [ ] Link an issue to explicit requirement/scenario IDs.
-- [ ] Detect missing references and stale spec revisions.
-- [ ] Export a portable Markdown and JSON context brief with provenance.
-- [ ] Run the service from a documented self-hosted deployment with persistent storage.
-- [ ] Document required outbound connections, secrets, backups, and retention.
+- [ ] Docker Compose quickstart and persistent storage.
+- [ ] Health/readiness checks, config validation, backup/restore notes.
+- [ ] Secrets supplied by the operator, redacted logs, no telemetry by default.
+- [ ] Document outbound network/data flow, including optional model provider egress.
 
-## M2 — PR intent review
+## M2 — Jira + OpenSpec context
 
-- [ ] Compare a PR with its Jira issue and linked requirements.
-- [ ] Show coverage as covered, partial, unclear, not covered, or not checked.
-- [ ] Ground each finding in a source path, line, and commit SHA.
-- [ ] Recheck findings when the PR head changes.
+- [ ] Read Jira issues with least-privilege access.
+- [ ] Discover OpenSpec requirement/scenario references in a configured repository.
+- [ ] Link issue keys to explicit requirement/scenario IDs and source revision.
+- [ ] Detect stale links and missing/ambiguous acceptance criteria.
+- [ ] Export portable Markdown and JSON context briefs with provenance.
 
-## M3 — Team workflow
+## M3 — ChunkHound codebase context
 
-- [ ] Draft Jira description/acceptance-criteria updates for human review.
-- [ ] Draft OpenSpec changes from reviewed implementation evidence.
-- [ ] Add team-level rules, audit trail, and configurable retention.
-- [ ] Support more Git providers and ticket systems based on community demand.
+- [ ] Index configured repositories and support exclusions/ignore rules.
+- [ ] Provide exact and semantic search to a review session through MCP.
+- [ ] Retrieve related symbols/call sites and relevant code research when needed.
+- [ ] Verify every code citation against the checked-out revision.
+- [ ] Keep indexing and embedding provider configuration operator-controlled.
 
-## M4 — Public onboarding
+## M4 — AI review adapters
 
-- [ ] Publish a landing page after the core tool workflow is usable.
-- [ ] Explain self-hosted installation, Jira connection, spec linking, and agent context with a step-by-step demo.
-- [ ] Include a realistic sample report, security/data-flow explanation, and contributor links.
+- [ ] Define a provider-neutral review request/result contract.
+- [ ] Integrate one reviewer first: Codex CLI or Claude Code CLI.
+- [ ] Return schema-validated findings with source evidence and confidence.
+- [ ] Add the second reviewer adapter without changing report/domain schemas.
+- [ ] Default to read-only; prevent automatic fixes, approvals, merges, and comments.
+
+## M5 — PR review and closure loop
+
+- [ ] Fetch GitHub PR base/head, metadata, checks, and diff.
+- [ ] Compare PR to Jira intent and linked OpenSpec scenarios.
+- [ ] Show product coverage and engineering risk separately.
+- [ ] Re-review after a new head and classify findings as resolved/still present/regressed/new/unverified.
+- [ ] Draft one review summary for user preview before posting.
+
+## M6 — Community onboarding
+
+- [ ] Publish a reproducible self-hosted release with upgrade instructions.
+- [ ] Add sanitized example repositories, sample tickets, and expected reports.
+- [ ] Publish a landing page after the workflow works end to end.
+- [ ] Add contribution guides, issue templates, security reporting, and roadmap discussions.
+
+## Explicitly out of scope until later
+
+- Automatic merge or approval.
+- Mandatory use of a paid embedding/model API.
+- Running arbitrary PR build/test scripts in the main application process.
+- Copying entire specs into Jira issues as unsynced duplicate text.
+- Multi-tenant SaaS control plane before the self-hosted workflow is useful.
