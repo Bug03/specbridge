@@ -1,0 +1,179 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="980" viewBox="0 0 1600 980" role="img" aria-labelledby="title description">
+  <title id="title">How SpecBridge works</title>
+  <desc id="description">A system overview showing GitHub pull requests entering a pinned, isolated review workspace; optional Jira and OpenSpec intent; ChunkHound retrieval and local reranking; Codex or Claude analysis; evidence-backed Business and Technical review results; and human triage with copy-only GitHub comment drafts. Solid teal elements are available experimentally today, and dashed violet elements are planned.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1220"/>
+      <stop offset="1" stop-color="#111c31"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2dd4bf"/>
+      <stop offset="1" stop-color="#38bdf8"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#020617" flood-opacity=".3"/>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0L10 5L0 10Z" fill="#71839d"/>
+    </marker>
+    <marker id="arrow-planned" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0L10 5L0 10Z" fill="#a78bfa"/>
+    </marker>
+    <style>
+      text { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .title { fill: #f8fafc; font-size: 42px; font-weight: 750; letter-spacing: -1px; }
+      .subtitle { fill: #a9b8cc; font-size: 18px; }
+      .section { fill: #d8e3f0; font-size: 15px; font-weight: 700; letter-spacing: 1.5px; }
+      .card-title { fill: #f8fafc; font-size: 19px; font-weight: 700; }
+      .card-copy { fill: #b7c5d8; font-size: 14px; }
+      .small { fill: #8fa2bb; font-size: 12px; }
+      .tag { font-size: 11px; font-weight: 750; letter-spacing: .7px; }
+      .available { fill: #5eead4; }
+      .planned { fill: #c4b5fd; }
+      .optional { fill: #fcd34d; }
+      .arrow { stroke: #71839d; stroke-width: 2.2; fill: none; marker-end: url(#arrow); }
+      .planned-arrow { stroke: #a78bfa; stroke-width: 2.2; stroke-dasharray: 7 7; fill: none; marker-end: url(#arrow-planned); }
+      .context-arrow { stroke: #fbbf24; stroke-width: 2.1; stroke-dasharray: 6 6; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="980" rx="28" fill="url(#bg)"/>
+  <circle cx="1450" cy="95" r="210" fill="#2563eb" opacity=".08"/>
+  <circle cx="110" cy="890" r="220" fill="#14b8a6" opacity=".06"/>
+
+  <text x="76" y="87" class="title">How SpecBridge works</text>
+  <text x="78" y="122" class="subtitle">A local-first review workflow that connects code changes to product intent and human decisions.</text>
+
+  <g transform="translate(78 156)">
+    <rect width="15" height="15" rx="4" fill="#2dd4bf"/>
+    <text x="25" y="13" class="small">Available experimentally today</text>
+    <rect x="270" width="15" height="15" rx="4" fill="none" stroke="#a78bfa" stroke-width="2" stroke-dasharray="4 3"/>
+    <text x="295" y="13" class="small">Planned deep-review capability</text>
+    <rect x="585" width="15" height="15" rx="4" fill="#fbbf24"/>
+    <text x="610" y="13" class="small">Optional project context</text>
+  </g>
+
+  <text x="78" y="226" class="section">1 · INPUTS</text>
+  <text x="420" y="226" class="section">2 · REVIEW WORKSPACE</text>
+  <text x="980" y="226" class="section">3 · REVIEW OUTPUT</text>
+  <text x="1320" y="226" class="section">4 · HUMAN DECISION</text>
+
+  <!-- Input cards -->
+  <g filter="url(#shadow)">
+    <rect x="76" y="254" width="260" height="164" rx="18" fill="#14243a" stroke="#2dd4bf" stroke-width="1.6"/>
+    <rect x="96" y="274" width="126" height="23" rx="11" fill="#0f3d3c"/>
+    <text x="108" y="290" class="tag available">AVAILABLE NOW</text>
+    <text x="98" y="333" class="card-title">GitHub pull request</text>
+    <text x="98" y="361" class="card-copy">PR details · diff · base/head SHA</text>
+    <text x="98" y="386" class="card-copy">Read-only intake for review</text>
+
+    <rect x="76" y="453" width="260" height="132" rx="18" fill="#14243a" stroke="#fbbf24" stroke-width="1.5"/>
+    <rect x="96" y="473" width="116" height="23" rx="11" fill="#493819"/>
+    <text x="108" y="489" class="tag optional">OPTIONAL</text>
+    <text x="98" y="530" class="card-title">Jira + OpenSpec</text>
+    <text x="98" y="557" class="card-copy">Ticket intent · acceptance criteria</text>
+    <text x="98" y="578" class="small">Adds business context when linked</text>
+  </g>
+
+  <!-- Review workspace -->
+  <g filter="url(#shadow)">
+    <rect x="400" y="254" width="540" height="331" rx="20" fill="#14243a" stroke="#2dd4bf" stroke-width="1.6"/>
+    <rect x="420" y="274" width="126" height="23" rx="11" fill="#0f3d3c"/>
+    <text x="432" y="290" class="tag available">AVAILABLE NOW</text>
+    <text x="420" y="331" class="card-title">Pinned, disposable review workspace</text>
+    <text x="420" y="356" class="card-copy">Checks the captured PR revision; keeps review read-only.</text>
+
+    <rect x="422" y="380" width="210" height="72" rx="13" fill="#102c3a" stroke="#2dd4bf" stroke-opacity=".7"/>
+    <text x="440" y="408" class="card-title" font-size="16">PR snapshot</text>
+    <text x="440" y="432" class="small">Temporary checkout · SHA check</text>
+
+    <rect x="668" y="380" width="246" height="72" rx="13" fill="#211d3c" stroke="#a78bfa" stroke-width="1.4" stroke-dasharray="6 5"/>
+    <text x="686" y="408" class="card-title" font-size="16">ChunkHound retrieval</text>
+    <text x="686" y="432" class="small">Repository context · local Docker</text>
+
+    <rect x="422" y="469" width="210" height="72" rx="13" fill="#211d3c" stroke="#a78bfa" stroke-width="1.4" stroke-dasharray="6 5"/>
+    <text x="440" y="497" class="card-title" font-size="16">Local reranker</text>
+    <text x="440" y="521" class="small">Reranks relevant code matches</text>
+
+    <rect x="668" y="469" width="246" height="72" rx="13" fill="#211d3c" stroke="#a78bfa" stroke-width="1.4" stroke-dasharray="6 5"/>
+    <text x="686" y="497" class="card-title" font-size="16">Chosen reviewer</text>
+    <text x="686" y="521" class="small">Codex CLI or Claude Code CLI</text>
+  </g>
+
+  <!-- Output cards -->
+  <g filter="url(#shadow)">
+    <rect x="970" y="254" width="300" height="331" rx="20" fill="#14243a" stroke="#a78bfa" stroke-width="1.6" stroke-dasharray="7 6"/>
+    <rect x="990" y="274" width="102" height="23" rx="11" fill="#302750"/>
+    <text x="1002" y="290" class="tag planned">PLANNED</text>
+    <text x="990" y="331" class="card-title">Evidence-backed report</text>
+    <text x="990" y="359" class="card-copy">Validated against the pinned code.</text>
+
+    <rect x="990" y="385" width="260" height="71" rx="13" fill="#1c2940"/>
+    <circle cx="1013" cy="420" r="8" fill="#fbbf24"/>
+    <text x="1031" y="416" class="card-title" font-size="16">Business review</text>
+    <text x="1031" y="439" class="small">Intent · outcome · status</text>
+
+    <rect x="990" y="470" width="260" height="71" rx="13" fill="#1c2940"/>
+    <circle cx="1013" cy="505" r="8" fill="#38bdf8"/>
+    <text x="1031" y="501" class="card-title" font-size="16">Technical review</text>
+    <text x="1031" y="524" class="small">Findings · evidence · severity</text>
+
+    <text x="990" y="566" class="small">Coverage and unknowns are shown explicitly.</text>
+  </g>
+
+  <!-- Human review -->
+  <g filter="url(#shadow)">
+    <rect x="1300" y="254" width="230" height="331" rx="20" fill="#14243a" stroke="#a78bfa" stroke-width="1.6" stroke-dasharray="7 6"/>
+    <rect x="1320" y="274" width="102" height="23" rx="11" fill="#302750"/>
+    <text x="1332" y="290" class="tag planned">PLANNED</text>
+    <text x="1320" y="331" class="card-title">Human triage</text>
+    <text x="1320" y="357" class="card-copy">Choose a triage action:</text>
+
+    <rect x="1320" y="383" width="190" height="35" rx="10" fill="#173c3b"/>
+    <text x="1335" y="406" class="card-copy" fill="#5eead4">Fix</text>
+    <rect x="1320" y="428" width="190" height="35" rx="10" fill="#3a2c21"/>
+    <text x="1335" y="451" class="card-copy" fill="#fcd34d">Won't fix</text>
+    <rect x="1320" y="473" width="190" height="35" rx="10" fill="#222c46"/>
+    <text x="1335" y="496" class="card-copy">Follow-up</text>
+
+    <text x="1320" y="535" class="small">Copy a reviewed comment draft</text>
+    <text x="1320" y="555" class="small">to GitHub manually. No auto-post.</text>
+  </g>
+
+  <!-- Flow connectors -->
+  <path d="M336 337H382" class="arrow"/>
+  <path d="M632 416H660" class="arrow"/>
+  <path d="M791 452V459H527V469" class="planned-arrow"/>
+  <path d="M632 505H660" class="planned-arrow"/>
+  <path d="M914 505H960" class="planned-arrow"/>
+  <path d="M1270 420H1290" class="planned-arrow"/>
+
+  <!-- Data and safety note -->
+  <g>
+    <rect x="76" y="641" width="1454" height="228" rx="20" fill="#101b2d" stroke="#33445e"/>
+    <text x="104" y="684" class="section">WHAT THE REVIEW IS DESIGNED TO PROTECT</text>
+
+    <g transform="translate(105 716)">
+      <circle cx="8" cy="8" r="5" fill="#2dd4bf"/>
+      <text x="25" y="13" class="card-title" font-size="16">Exact review target</text>
+      <text x="25" y="39" class="card-copy">Every run records the repository and base/head SHA it inspected.</text>
+    </g>
+    <g transform="translate(590 716)">
+      <circle cx="8" cy="8" r="5" fill="#38bdf8"/>
+      <text x="25" y="13" class="card-title" font-size="16">Evidence before findings</text>
+      <text x="25" y="39" class="card-copy">Each issue needs a code location and a concrete failure path.</text>
+    </g>
+    <g transform="translate(1080 716)">
+      <circle cx="8" cy="8" r="5" fill="#fbbf24"/>
+      <text x="25" y="13" class="card-title" font-size="16">People own the decision</text>
+      <text x="25" y="39" class="card-copy">A reviewer triages notes; SpecBridge does not approve or post.</text>
+    </g>
+
+    <path d="M104 791H1502" stroke="#273750"/>
+    <text x="104" y="827" class="small">Data flow depends on your configuration: GitHub, optional Jira, your selected AI reviewer, and optionally a hosted embedding provider may receive data.</text>
+    <text x="104" y="849" class="small">ChunkHound and reranking are planned as local Docker services; choosing local embeddings does not make the AI review itself offline.</text>
+  </g>
+
+  <text x="78" y="922" class="small">SpecBridge · System overview · Status shown for the current prototype and planned deep-review workflow</text>
+  <text x="1520" y="922" class="small" text-anchor="end">Author · Hoàng Danh</text>
+</svg>
