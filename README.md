@@ -1,20 +1,28 @@
 # SpecBridge
 
-**Review pull requests with clear evidence for both developers and product managers.**
+**AI can write code faster than teams can verify it.**
 
-SpecBridge is being built for evidence-backed PR reviews. The target deep-review flow uses ChunkHound and a reranker model in local Docker containers, with Codex CLI or Claude Code CLI selected by the user. Jira and OpenSpec add product intent when available.
+AI-assisted development is increasing the pace of implementation, while review still depends on limited reviewer time and context spread across code, tickets, and specs. That gap makes it harder to catch regressions, confirm that a change meets the intended user need, and distinguish a real risk from a vague suggestion.
+
+SpecBridge is an open-source project built to make PR reviews easier to inspect and act on. Its planned deep-review workflow connects a pull request to its exact code revision, relevant repository context, and optional Jira or OpenSpec requirements. It presents separate Business and Technical reviews, with findings tied to evidence and a clear account of what was checked.
+
+The goal is to help teams make better review decisions, not to make those decisions for them. People inspect and triage findings; SpecBridge does not automatically approve a PR or post comments. Today’s experimental prototype supports a single-pass Codex CLI review. The deeper ChunkHound, local reranking, Codex/Claude selection, and review UI workflow is still in development.
 
 ## Why use it?
 
-- **Developers** spend less time searching for the right project context before asking an agent to work.
-- **PMs** can see which requirements a ticket covers and where the team still needs an answer.
-- **Reviewers** can check a change against its intent, with evidence they can inspect.
+- **Developers** get actionable findings with a concrete code location and failure path.
+- **PMs** can see whether linked requirements are met, incomplete, unmet, or still unclear.
+- **Reviewers** can inspect the evidence and coverage behind a review before deciding what to do.
 
-## How it works
+## Planned deep-review flow
 
 1. Start the local retrieval services and choose a reviewer CLI.
 2. Give SpecBridge a GitHub PR URL.
 3. Inspect staged, evidence-backed findings tied to the exact PR revision; decide what to do as a team.
+
+The diagram below shows the end-to-end flow and distinguishes what is available today from what is planned. [Open the SVG](docs/system-overview.svg).
+
+[![SpecBridge system overview](docs/system-overview.svg)](docs/system-overview.svg)
 
 SpecBridge is designed to run inside your own environment. You control how it connects to Jira, your code, and the AI service you choose.
 
@@ -35,6 +43,8 @@ You can review SpecBridge sample outputs in [English](docs/examples/sample-revie
 SpecBridge is an early open-source project. PR intake, a one-pass Codex CLI prototype, and Jira/OpenSpec context generation are available experimentally. Local Docker code retrieval, local reranking, selectable Codex/Claude adapters, resumable deep review, and the review UI remain in development.
 
 ## Get involved
+
+If SpecBridge looks useful, please star or fork the repo. If you find a bug or hit a setup issue, raise it in [GitHub Issues](https://github.com/Bug03/specbridge/issues) so we can investigate and fix it together.
 
 We welcome feedback from developers, product managers, and maintainers. Start with the [product overview](docs/product-brief.md), see the [roadmap](docs/roadmap.md), or help shape the work in GitHub Issues.
 
