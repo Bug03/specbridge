@@ -16,20 +16,32 @@ gh auth status
 
 ## Start a prototype review
 
+Clone SpecBridge and run the review command:
+
 ```sh
-node /path/to/specbridge/src/cli.js review https://github.com/owner/repository/pull/123
+git clone https://github.com/Bug03/specbridge.git
+cd specbridge
+node src/cli.js review https://github.com/owner/repository/pull/123
 ```
 
-Replace `/path/to/specbridge` with the location where you cloned SpecBridge. The command fetches the pull request into a temporary checkout, asks Codex to review it read-only, prints a local report, then removes the temporary checkout. It does not modify your working repository or post a comment on GitHub. The report is in English by default. Choose Vietnamese with `--language vi` (or `--lang vi`):
+Replace the example pull request URL with one you can access. You need `gh` and Codex CLI installed and authenticated as described above.
+
+From an existing SpecBridge checkout, run:
 
 ```sh
-node /path/to/specbridge/src/cli.js review https://github.com/owner/repository/pull/123 --language vi
+node src/cli.js review https://github.com/owner/repository/pull/123
+```
+
+The command fetches the pull request into a temporary checkout, asks Codex to review it read-only, prints a local report, then removes the temporary checkout. It does not modify your working repository or post a comment on GitHub. The report is in English by default. Choose Vietnamese with `--language vi` (or `--lang vi`):
+
+```sh
+node src/cli.js review https://github.com/owner/repository/pull/123 --language vi
 ```
 
 To save the report:
 
 ```sh
-node /path/to/specbridge/src/cli.js review https://github.com/owner/repository/pull/123 --output review.md
+node src/cli.js review https://github.com/owner/repository/pull/123 --output review.md
 ```
 
 To save a Vietnamese report, use `--language vi --output review.md`; SpecBridge saves it as `review-vi.md`. English keeps the requested filename unchanged. Reports separate **Business review** (user outcomes and stated requirements) from **Technical review** (evidence-backed implementation findings), followed by coverage and limits. When Jira/OpenSpec context is not available, business conformance is marked unknown rather than inferred.
@@ -41,13 +53,13 @@ The Codex CLI model defaults to `gpt-5.6-terra` in this prototype. Set `SPECBRID
 The Jira context command is separate from PR review. Create a local `.env` template:
 
 ```sh
-node /path/to/specbridge/src/cli.js init
+node src/cli.js init
 ```
 
 Fill in Jira site URL, account email, and a read-only API token, then run:
 
 ```sh
-node /path/to/specbridge/src/cli.js context PROJ-123
+node src/cli.js context PROJ-123
 ```
 
 Use the Atlassian account email that created the API token and the site URL origin, such as `https://your-domain.atlassian.net` (do not paste a project or board URL). SpecBridge checks Jira authentication before looking up the issue. An HTTP 401 means Jira rejected the email/token pair; replace the token and confirm the account email. After authentication succeeds, an HTTP 404 means the issue key may be wrong or the account may not have Browse Projects access. See Atlassian's [API token and Basic authentication guide](https://developer.atlassian.com/cloud/jira/platform/basic-auth-for-rest-apis/).

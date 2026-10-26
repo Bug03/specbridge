@@ -2,7 +2,7 @@
   "name": "specbridge",
   "version": "0.1.0",
   "private": false,
-  "description": "Build source-linked Jira and OpenSpec context briefs for coding agents.",
+  "description": "Experimental self-hosted AI PR review with optional Jira and OpenSpec context.",
   "type": "module",
   "bin": {
     "specbridge": "./src/cli.js"
