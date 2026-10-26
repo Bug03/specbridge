@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" role="img" aria-labelledby="title description">
+  <title id="title">SpecBridge — AI PR reviews grounded in code and product intent</title>
+  <desc id="description">Social preview for SpecBridge, an experimental self-hosted AI code review project for GitHub pull requests, with optional Jira and OpenSpec context.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1220"/>
+      <stop offset="1" stop-color="#17243a"/>
+    </linearGradient>
+    <linearGradient id="highlight" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2dd4bf"/>
+      <stop offset="1" stop-color="#38bdf8"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="12" stdDeviation="18" flood-color="#020617" flood-opacity=".35"/>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0L10 5L0 10Z" fill="#71839d"/>
+    </marker>
+    <style>
+      text { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .eyebrow { fill: #5eead4; font-size: 15px; font-weight: 750; letter-spacing: 2px; }
+      .brand { fill: #5eead4; font-size: 18px; font-weight: 750; letter-spacing: .4px; }
+      .badge { fill: #5eead4; font-size: 10px; font-weight: 750; letter-spacing: .5px; }
+      .headline { fill: #f8fafc; font-size: 51px; font-weight: 760; letter-spacing: -1.6px; }
+      .sub { fill: #b7c5d8; font-size: 19px; }
+      .cardTitle { fill: #f8fafc; font-size: 17px; font-weight: 700; }
+      .cardCopy { fill: #a9b8cc; font-size: 13px; }
+      .foot { fill: #8fa2bb; font-size: 13px; font-weight: 600; letter-spacing: .5px; }
+    </style>
+  </defs>
+
+  <rect width="1280" height="640" rx="28" fill="url(#background)"/>
+  <circle cx="1170" cy="42" r="250" fill="#2563eb" opacity=".09"/>
+  <circle cx="85" cy="610" r="200" fill="#14b8a6" opacity=".07"/>
+  <path d="M0 500C240 420 370 670 650 555S1050 380 1280 490V640H0Z" fill="#0b1322" opacity=".45"/>
+
+  <g transform="translate(76 72)">
+    <rect width="10" height="26" rx="5" fill="url(#highlight)"/>
+    <text x="24" y="19" class="brand">SpecBridge</text>
+    <rect x="177" y="-1" width="216" height="28" rx="14" fill="#1c3343" stroke="#2dd4bf" stroke-opacity=".35"/>
+    <text x="193" y="18" class="badge">EXPERIMENTAL · OPEN SOURCE</text>
+  </g>
+
+  <text x="76" y="185" class="headline">AI writes code faster.</text>
+  <text x="76" y="246" class="headline">Can your team review it?</text>
+  <text x="78" y="291" class="sub">Evidence-backed GitHub PR reviews connected to code and product intent.</text>
+
+  <g filter="url(#shadow)">
+    <rect x="76" y="355" width="300" height="126" rx="18" fill="#14243a" stroke="#2dd4bf" stroke-width="1.5"/>
+    <circle cx="108" cy="390" r="14" fill="#0f3d3c"/>
+    <text x="108" y="395" text-anchor="middle" fill="#5eead4" font-size="13" font-weight="800">1</text>
+    <text x="135" y="396" class="cardTitle">GitHub pull request</text>
+    <text x="99" y="435" class="cardCopy">Review the exact code change</text>
+    <text x="99" y="456" class="cardCopy">against its pinned revision.</text>
+
+    <rect x="490" y="355" width="300" height="126" rx="18" fill="#14243a" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="7 6"/>
+    <circle cx="522" cy="390" r="14" fill="#302750"/>
+    <text x="522" y="395" text-anchor="middle" fill="#c4b5fd" font-size="13" font-weight="800">2</text>
+    <text x="549" y="396" class="cardTitle">Code + product context</text>
+    <text x="513" y="435" class="cardCopy">ChunkHound retrieval, local reranking,</text>
+    <text x="513" y="456" class="cardCopy">optional Jira and OpenSpec intent.</text>
+
+    <rect x="904" y="355" width="300" height="126" rx="18" fill="#14243a" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="7 6"/>
+    <circle cx="936" cy="390" r="14" fill="#302750"/>
+    <text x="936" y="395" text-anchor="middle" fill="#c4b5fd" font-size="13" font-weight="800">3</text>
+    <text x="963" y="396" class="cardTitle">Business + Technical review</text>
+    <text x="927" y="435" class="cardCopy">Evidence-linked findings;</text>
+    <text x="927" y="456" class="cardCopy">people stay in control.</text>
+  </g>
+
+  <path d="M378 418H474" stroke="#71839d" stroke-width="2.4" fill="none" marker-end="url(#arrow)"/>
+  <path d="M792 418H888" stroke="#a78bfa" stroke-width="2.4" stroke-dasharray="7 7" fill="none" marker-end="url(#arrow)"/>
+
+  <path d="M76 526H1204" stroke="#273750"/>
+  <text x="78" y="565" class="foot">SELF-HOSTED BY DESIGN</text>
+  <circle cx="286" cy="560" r="3" fill="#2dd4bf"/>
+  <text x="302" y="565" class="foot">CODE REVIEW IN PROGRESS</text>
+  <text x="1202" y="565" text-anchor="end" class="foot">specbridge</text>
+</svg>
